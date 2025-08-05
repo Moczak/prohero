@@ -1,0 +1,93 @@
+.admin-users-container {
+  max-width: 900px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  padding: 32px 24px 24px 24px;
+}
+.admin-users-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.admin-users-search {
+  flex: 1;
+  min-width: 220px;
+  padding: 8px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+.admin-users-filter {
+  min-width: 140px;
+  padding: 8px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+.admin-users-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 18px;
+}
+.admin-users-table th, .admin-users-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: left;
+}
+.admin-users-table th {
+  background: #fafafa;
+  color: #444;
+  font-weight: 600;
+}
+.admin-users-table tr:last-child td {
+  border-bottom: none;
+}
+.admin-users-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #666;
+}
+.admin-users-actions {
+  display: flex;
+  gap: 10px;
+}
+.admin-users-actions button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.96rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.admin-users-actions .edit {
+  background: #e5f6fd;
+  color: #1976d2;
+}
+.admin-users-actions .edit:hover {
+  background: #b3e5fc;
+}
+.admin-users-actions .delete {
+  background: #fdecea;
+  color: #e74c3c;
+}
+.admin-users-actions .delete:hover {
+  background: #f8bbbc;
+}
+.admin-users-role-select {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+  font-size: 0.96rem;
+}
