@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Trophy, 
   BarChart3,
-  Shirt,
   Medal,
   Users
 } from 'lucide-react';
@@ -12,6 +11,7 @@ import Navbar from '../components/Navbar/Navbar';
 import { useSidebar } from '../context/SidebarContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -26,6 +26,8 @@ const Dashboard: React.FC = () => {
   const [leaguesCount, setLeaguesCount] = useState(0);
   const [upcomingGames, setUpcomingGames] = useState<any[]>([]);
   const [recentTournaments, setRecentTournaments] = useState<any[]>([]);
+
+
 
   // Função para buscar dados reais
   useEffect(() => {
@@ -105,6 +107,8 @@ const Dashboard: React.FC = () => {
     return diffDays === 0 ? 'Hoje' : `${diffDays} dia${diffDays > 1 ? 's' : ''}`;
   };
 
+
+
   // Mock data para produtos (mantido pois não temos tabela de produtos ainda)
   const popularProducts = [
     { id: 1, name: 'Camisa Oficial 2025', price: 'R$ 199,90', stock: 45 },
@@ -141,7 +145,7 @@ const Dashboard: React.FC = () => {
               </div>
               
               {/* Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div className="bg-white rounded-lg shadow p-4 flex items-center">
                   <div className="rounded-full bg-green-100 p-3 mr-4">
                     <Trophy className="h-6 w-6 text-green-600" />
@@ -189,16 +193,7 @@ const Dashboard: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                
-                <div className="bg-white rounded-lg shadow p-4 flex items-center">
-                  <div className="rounded-full bg-purple-100 p-3 mr-4">
-                    <Shirt className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-sm">Vendas (Mês)</p>
-                    <p className="text-2xl font-semibold">R$ 3.240</p>
-                  </div>
-                </div>
+
               </div>
               
               {/* Upcoming Matches */}
@@ -370,7 +365,7 @@ const Dashboard: React.FC = () => {
             <div>
               <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold flex items-center mb-4 md:mb-0">
-                  <Shirt className="mr-2" />
+                  <BarChart3 className="mr-2" />
                   Loja - Em Breve
                 </h1>
               </div>

@@ -43,8 +43,8 @@ const MinhasVendas: React.FC = () => {
     .filter((o) => o.status === 'Aguardando Pagamento')
     .reduce((acc, o) => acc + o.total, 0);
 
-  // Total recebido líquido (após taxa de 10%)
-  const receivedSales = Math.round(totalSales * 0.9);
+  // Total recebido = total de vendas - 15% de taxa
+  const receivedSales = totalSales * 0.85; // 100% - 15% = 85%
   const [itemsLoading, setItemsLoading] = useState(false);
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
 
@@ -59,6 +59,8 @@ const MinhasVendas: React.FC = () => {
       setUpdatingStatusId(null);
     }
   };
+
+
 
   useEffect(() => {
     const load = async () => {
@@ -108,15 +110,23 @@ const MinhasVendas: React.FC = () => {
             <DollarSign className="mr-3 text-green-600" />
             <div>
               <p className="text-sm text-gray-600">Total de Vendas (Confirmado)</p>
-              <p className="text-2xl font-bold text-green-700">{formatPrice(totalSales)}</p>
+              {isLoading ? (
+                <div className="h-8 bg-green-200 animate-pulse rounded w-24"></div>
+              ) : (
+                <p className="text-2xl font-bold text-green-700">{formatPrice(totalSales)}</p>
+              )}
             </div>
           </div>
           {/* Total Recebido */}
           <div className="bg-blue-100 border border-blue-300 rounded-lg p-4 flex items-center">
             <DollarSign className="mr-3 text-blue-600" />
             <div>
-              <p className="text-sm text-gray-600">Total Recebido</p>
-              <p className="text-2xl font-bold text-blue-700">{formatPrice(receivedSales)}</p>
+              <p className="text-sm text-gray-600">Total Recebido (15% Taxa)</p>
+              {isLoading ? (
+                <div className="h-8 bg-blue-200 animate-pulse rounded w-24"></div>
+              ) : (
+                <p className="text-2xl font-bold text-blue-700">{formatPrice(receivedSales)}</p>
+              )}
             </div>
           </div>
           {/* Total Aguardando Pagamento */}
@@ -124,7 +134,11 @@ const MinhasVendas: React.FC = () => {
             <DollarSign className="mr-3 text-yellow-600" />
             <div>
               <p className="text-sm text-gray-600">Aguardando Pagamento</p>
-              <p className="text-2xl font-bold text-yellow-700">{formatPrice(pendingSales)}</p>
+              {isLoading ? (
+                <div className="h-8 bg-yellow-200 animate-pulse rounded w-24"></div>
+              ) : (
+                <p className="text-2xl font-bold text-yellow-700">{formatPrice(pendingSales)}</p>
+              )}
             </div>
           </div>
         </div>
@@ -387,7 +401,7 @@ const MinhasVendas: React.FC = () => {
                           </div>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-600">Valor:</span>
+                          <span className="text-sm text-gray-600">Valor Total:</span>
                           <p className="font-medium">{formatPrice(paymentStatus.charge?.value || 0)}</p>
                         </div>
                         <div>
@@ -400,6 +414,44 @@ const MinhasVendas: React.FC = () => {
                           </p>
                         </div>
                       </div>
+                      
+                      {/* Informações de Split */}
+                      {paymentStatus.charge?.splits && paymentStatus.charge.splits.length > 0 && (
+                        <div className="mt-6 border-t pt-4">
+                          <h4 className="text-md font-medium mb-3">Divisão de Valores (Taxa)</h4>
+                          <div className="space-y-3">
+                            {paymentStatus.charge.splits.map((split: any, index: number) => (
+                              <div key={index} className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                                <div>
+                                  <span className="text-sm text-gray-600">Chave Pix:</span>
+                                  <p className="font-medium text-sm">{split.pixKey}</p>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-sm text-gray-600">Valor:</span>
+                                  <p className="font-medium text-blue-600">{formatPrice(split.value)}</p>
+                                </div>
+                              </div>
+                            ))}
+                            
+                            {/* Valor que ficou com a loja */}
+                            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                              <div>
+                                <span className="text-sm text-gray-600">Valor da Loja:</span>
+                                <p className="font-medium text-sm">Valor que ficou com a loja</p>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-sm text-gray-600">Valor:</span>
+                                <p className="font-medium text-green-600">
+                                  {formatPrice(
+                                    (paymentStatus.charge?.value || 0) - 
+                                    (paymentStatus.charge?.splits?.reduce((acc: number, split: any) => acc + split.value, 0) || 0)
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="text-center py-8">

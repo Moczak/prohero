@@ -5,7 +5,8 @@ create table orders (
   total integer not null,  -- em centavos
   status text not null default 'pending',
   created_at timestamptz default now(),
-  id_transacao text
+  id_transacao text,
+  correlationID text
 );
 
 -- Itens do pedido

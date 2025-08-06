@@ -73,6 +73,7 @@ const LojaOnline: React.FC = () => {
       console.error('VITE_OPENPIX_MAIN_PIX_KEY não configurado');
     }
 
+    // Cálculo do split (linha 76-78)
     const totalCents = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
     const adminPart = Math.round(totalCents * 0.15);
     const sellerPart = totalCents - adminPart;

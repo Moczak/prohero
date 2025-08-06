@@ -75,6 +75,77 @@ export interface GetChargeResponse {
   };
 }
 
+export interface GetSubAccountBalanceResponse {
+  subAccount: {
+    name: string;
+    pixKey: string;
+    balance: number; // valor em centavos
+  };
+}
+
+export interface WithdrawSubAccountResponse {
+  transaction: {
+    status: string;
+    value: number; // valor em centavos
+    correlationID: string;
+    destinationAlias: string;
+    comment?: string;
+  };
+}
+
+export interface Transaction {
+  customer?: {
+    name: string;
+    email: string;
+    phone: string;
+    taxID: {
+      taxID: string;
+      type: string;
+    };
+    correlationID: string;
+  };
+  payer?: {
+    name: string;
+    email: string;
+    phone: string;
+    taxID: {
+      taxID: string;
+      type: string;
+    };
+    correlationID: string;
+  };
+  charge?: {
+    status: string;
+    customer: string;
+    correlationID: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  withdraw?: {
+    value: number;
+    time: string;
+    infoPagador: string;
+    endToEndId: string;
+  };
+  type: 'PAYMENT' | 'WITHDRAW';
+  infoPagador: string;
+  value: number;
+  time: string;
+  transactionID: string;
+  endToEndId: string;
+}
+
+export interface GetTransactionsResponse {
+  pageInfo: {
+    skip: number;
+    limit: number;
+    totalCount: number;
+    hasPreviousPage: boolean;
+    hasNextPage: boolean;
+  };
+  transactions: Transaction[];
+}
+
 // -----------------------------------------------------------------------------
 // Config
 // -----------------------------------------------------------------------------
@@ -362,5 +433,108 @@ export const getChargeStatus = async (
   transactionId: string
 ): Promise<GetChargeResponse> => {
   return await getCharge(transactionId);
+};
+
+/**
+ * Busca o saldo de uma subconta pela chave Pix.
+ */
+export const getSubAccountBalance = async (
+  pixKey: string
+): Promise<GetSubAccountBalanceResponse> => {
+  console.log('[OpenPix] Buscando saldo da subconta:', pixKey);
+  
+  const res = await fetch(`${OPENPIX_BASE_URL}/subaccount/${pixKey}`, {
+    method: 'GET',
+    headers: defaultHeaders,
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.text();
+    console.error('[OpenPix] Erro ao buscar saldo da subconta:', res.status, errorBody);
+    throw new Error(`Falha ao buscar saldo da subconta: ${res.status} - ${errorBody}`);
+  }
+
+  const data = await res.json() as GetSubAccountBalanceResponse;
+  console.log('[OpenPix] Saldo da subconta obtido:', data);
+  return data;
+};
+
+/**
+ * Realiza o saque de uma subconta pela chave Pix.
+ * Se value não for especificado, realiza saque integral.
+ */
+export const withdrawSubAccount = async (
+  pixKey: string,
+  value?: number
+): Promise<WithdrawSubAccountResponse> => {
+  if (!APP_ID) throw new Error("Credenciais OpenPix não configuradas.");
+  
+  console.log('[OpenPix] Realizando saque da subconta:', pixKey, 'valor:', value);
+
+  const body = value ? { value } : {};
+
+  const res = await fetch(`${OPENPIX_BASE_URL}/subaccount/${pixKey}/withdraw`, {
+    method: "POST",
+    headers: defaultHeaders,
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.text();
+    console.error('[OpenPix] Erro ao realizar saque da subconta:', res.status, errorBody);
+    throw new Error(`Falha ao realizar saque da subconta: ${res.status} - ${errorBody}`);
+  }
+
+  const data = await res.json() as WithdrawSubAccountResponse;
+  console.log('[OpenPix] Saque realizado com sucesso:', data);
+  return data;
+};
+
+/**
+ * Busca o histórico de transações.
+ * @param params - Parâmetros de consulta opcionais
+ * @returns Promise com a resposta das transações
+ */
+export const getTransactions = async (params?: {
+  start?: string; // Data início no formato RFC 3339 (ex: 2020-01-01T00:00:00Z)
+  end?: string;   // Data fim no formato RFC 3339 (ex: 2020-12-01T17:00:00Z)
+  charge?: string; // ID da cobrança para filtrar transações relacionadas
+  pixQrCode?: string; // ID do QR Code para filtrar transações relacionadas
+  withdrawal?: string; // ID do saque para filtrar transações relacionadas
+  skip?: number; // Número de registros para pular (paginação)
+  limit?: number; // Limite de registros por página
+}): Promise<GetTransactionsResponse> => {
+  if (!APP_ID) throw new Error("Credenciais OpenPix não configuradas.");
+
+  // Constrói os parâmetros da query string
+  const queryParams = new URLSearchParams();
+  if (params?.start) queryParams.append('start', params.start);
+  if (params?.end) queryParams.append('end', params.end);
+  if (params?.charge) queryParams.append('charge', params.charge);
+  if (params?.pixQrCode) queryParams.append('pixQrCode', params.pixQrCode);
+  if (params?.withdrawal) queryParams.append('withdrawal', params.withdrawal);
+  if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString());
+  if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
+
+  const queryString = queryParams.toString();
+  const url = `${OPENPIX_BASE_URL}/transaction${queryString ? `?${queryString}` : ''}`;
+
+  console.log(`[OpenPix] Buscando transações: ${url}`);
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: defaultHeaders,
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.text();
+    console.error(`[OpenPix] Erro ao buscar transações: ${res.status} - ${errorBody}`);
+    throw new Error(`Falha ao buscar transações: ${res.status} - ${errorBody}`);
+  }
+
+  const response = (await res.json()) as GetTransactionsResponse;
+  console.log(`[OpenPix] Transações encontradas: ${response.transactions?.length || 0}`);
+  
+  return response;
 };
 
