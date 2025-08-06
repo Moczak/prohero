@@ -182,27 +182,26 @@ const Conta: React.FC = () => {
       
       console.log('[Conta] Resposta da API:', response);
       
-      // Filtrar apenas transações de saque (WITHDRAW)
-      const withdrawTransactions = (response.transactions || []).filter(
-        transaction => transaction.type === 'WITHDRAW'
-      );
+      // Mostrar todas as transações (PAYMENT e WITHDRAW)
+      const allTransactions = (response.transactions || []).sort((a, b) => {
+        // Ordenar por data decrescente (mais recente primeiro)
+        return new Date(b.time).getTime() - new Date(a.time).getTime();
+      });
       
-      console.log(`[Conta] Transações filtradas: ${withdrawTransactions.length} saques de ${response.transactions?.length || 0} transações totais`);
-      console.log('[Conta] Transações de saque:', withdrawTransactions);
+      console.log(`[Conta] Transações encontradas: ${allTransactions.length} transações totais`);
+      console.log('[Conta] Transações ordenadas:', allTransactions);
       
       if (reset) {
-        setTransactions(withdrawTransactions);
+        setTransactions(allTransactions);
         setTransactionsPage(0);
       } else {
-        setTransactions(prev => [...prev, ...withdrawTransactions]);
+        setTransactions(prev => [...prev, ...allTransactions]);
       }
       
       console.log('[Conta] Estado das transações atualizado');
       
-      // Ajustar hasMoreTransactions baseado no filtro
-      // Se temos menos transações filtradas que o limite, pode não haver mais páginas úteis
-      const hasMoreFiltered = withdrawTransactions.length === limit && (response.pageInfo?.hasNextPage || false);
-      setHasMoreTransactions(hasMoreFiltered);
+      // Ajustar hasMoreTransactions baseado na resposta da API
+      setHasMoreTransactions(response.pageInfo?.hasNextPage || false);
       
     } catch (err) {
       console.error('Erro ao buscar transações:', err);
@@ -807,7 +806,7 @@ const Conta: React.FC = () => {
                           </div>
                           <div className="text-right">
                             <p className="text-sm text-gray-600">Período: Últimos 30 dias</p>
-                            <p className="text-sm text-gray-500">{transactions.length} saques encontrados</p>
+                            <p className="text-sm text-gray-500">{transactions.length} transações encontradas</p>
                           </div>
                         </div>
                       </div>
@@ -825,8 +824,8 @@ const Conta: React.FC = () => {
                       ) : transactions.length === 0 ? (
                         <div className="text-center py-8">
                           <FileText size={48} className="mx-auto text-gray-400 mb-4" />
-                          <h4 className="text-lg font-medium text-gray-900 mb-2">Nenhum saque encontrado</h4>
-                          <p className="text-gray-600">Não há saques realizados nos últimos 30 dias para esta chave Pix.</p>
+                          <h4 className="text-lg font-medium text-gray-900 mb-2">Nenhuma transação encontrada</h4>
+                          <p className="text-gray-600">Não há transações realizadas nos últimos 30 dias para esta chave Pix.</p>
                         </div>
                       ) : (
                         <div className="space-y-3">
@@ -835,8 +834,12 @@ const Conta: React.FC = () => {
                               <div className="flex items-center justify-between">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-3 mb-2">
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-blue-600 bg-blue-100">
-                                      Saque
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                      transaction.type === 'WITHDRAW' 
+                                        ? 'text-red-600 bg-red-100' 
+                                        : 'text-green-600 bg-green-100'
+                                    }`}>
+                                      {transaction.type === 'WITHDRAW' ? 'Saque' : 'Pagamento Recebido'}
                                     </span>
                                     <span className="text-sm text-gray-500">
                                       {formatDate(transaction.time)}
@@ -895,7 +898,7 @@ const Conta: React.FC = () => {
                                     Carregando...
                                   </>
                                 ) : (
-                                  'Carregar Mais Saques'
+                                  'Carregar Mais Transações'
                                 )}
                               </button>
                             </div>
